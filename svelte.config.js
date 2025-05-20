@@ -1,13 +1,20 @@
-import adapter from '@sveltejs/adapter-auto';
+import adapter from '@sveltejs/adapter-static';
 
 /** @type {import('@sveltejs/kit').Config} */
 const config = {
-	kit: {
-		// adapter-auto only supports some environments, see https://svelte.dev/docs/kit/adapter-auto for a list.
-		// If your environment is not supported, or you settled on a specific environment, switch out the adapter.
-		// See https://svelte.dev/docs/kit/adapters for more information about adapters.
-		adapter: adapter()
-	}
+    kit: {
+        adapter: adapter({
+            pages: 'docs',  // Directorio donde se generarán los archivos
+            assets: 'docs', // Coloca los activos en docs también
+            fallback: null, // Puede ser útil para rutas no encontradas
+        }),
+        paths: {
+            base: '/montajes_aep'  // Solo necesario si estás en producción con esa base
+        },
+        prerender: {
+            entries: ['*']  // Prerender todas las rutas encontradas automáticamente
+        }
+    }
 };
 
 export default config;
