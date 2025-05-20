@@ -9,7 +9,7 @@ const config = {
             fallback: null, // Puede ser útil para rutas no encontradas
         }),
         paths: {
-            base: '/montajes_aep'  // Solo necesario si estás en producción con esa base
+            base: '/montajes_aep_2025-1'  // Solo necesario si estás en producción con esa base
         },
         prerender: {
             entries: ['*']  // Prerender todas las rutas encontradas automáticamente

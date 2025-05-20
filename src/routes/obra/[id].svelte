@@ -10,7 +10,7 @@
         // Verificar el ID recibido desde la URL
         console.log(`ID recibido desde la URL: ${id}`);
     
-        const url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQU6PjWzqXNeb4P4KdhZ64Z_1ImvEd0NOQv0itGFV3hM89oZdBG3zQYuc9aXbfmxLj13HPOyDt7dO_O/pub?output=csv";
+        const url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSDcmREoBGgchu12xsYGfmZndWhOHBHrq0ekTZv2eDEfF5py8yEvQoPfvjeTMU2G18AUrI9uAiUpk1J/pub?output=csv";
         const response = await fetch(url);
         const text = await response.text();
         const data = d3.csvParse(text);

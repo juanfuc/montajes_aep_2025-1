@@ -10,7 +10,7 @@
      
     // Función para cargar los datos desde Google Sheets
     async function loadData() {
-        const url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQU6PjWzqXNeb4P4KdhZ64Z_1ImvEd0NOQv0itGFV3hM89oZdBG3zQYuc9aXbfmxLj13HPOyDt7dO_O/pub?output=csv";
+        const url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSDcmREoBGgchu12xsYGfmZndWhOHBHrq0ekTZv2eDEfF5py8yEvQoPfvjeTMU2G18AUrI9uAiUpk1J/pub?output=csv";
         try {
             const fetchedData = await d3.csv(url);
             data = fetchedData;
@@ -24,110 +24,121 @@
         }
     }
     
-    onMount(() => {
-        loadData();
-    
-        // Crear el lienzo SVG dentro del header
-        const svg = d3.select("#header-sketch")
-            .append("svg")
-            .attr("width", "100%")
-            .attr("height", "100%")
-            .attr("viewBox", "0 0 1800 200")
-            .attr("preserveAspectRatio", "xMidYMid meet");
-    
-        const width = 1800;
-        const height = 200;
-        const numParticles = 100;
-        const primaryColor = getComputedStyle(document.documentElement).getPropertyValue('--primary-color').trim();
-        const secondaryColor = getComputedStyle(document.documentElement).getPropertyValue('--secondary-color').trim();
-    
-        // Generar partículas con posiciones iniciales aleatorias
-        const particles = d3.range(numParticles).map(() => {
-            return {
-                x: Math.random() * width,
-                y: Math.random() * height,
-                angle: Math.random() * 2 * Math.PI
-            };
-        });
-    
-        // Crear elementos de línea para representar las trayectorias
-        const lines = svg.selectAll("line")
-            .data(particles)
-            .enter()
-            .append("line")
-            .attr("x1", d => d.x)
-            .attr("y1", d => d.y)
-            .attr("x2", d => d.x + Math.cos(d.angle) * 10)
-            .attr("y2", d => d.y + Math.sin(d.angle) * 10)
-            .attr("stroke", secondaryColor)
-            .attr("stroke-width", 2)
-            .attr("stroke-opacity", 0.7);
-    
-        // Añadir el título y el subtítulo al lienzo
-        svg.append("text")
-            .attr("x", 0)
-            .attr("y", 100)
-            .attr("font-family", "Helvetica, sans-serif")
-            .attr("font-size", "6rem")
-            .attr("fill", "black")
-            .text("Montajes");
-    
-        svg.append("text")
-            .attr("x", 1600)
-            .attr("y", 100)
-            .attr("font-family", "Helvetica, sans-serif")
-            .attr("font-size", "1.4rem")
-            .attr("fill", "black")
-            .text("Arte, ética y política");
-    
-        // Función de actualización de las partículas
-        function updateParticles() {
-            particles.forEach(p => {
-                p.x += Math.cos(p.angle) * 2;
-                p.y += Math.sin(p.angle) * 2;
-    
-                // Cambiar ligeramente el ángulo para darle más dinamismo
-                p.angle += (Math.random() - 0.5) * 0.2;
-    
-                // Mantener las partículas dentro de los límites del SVG
-                if (p.x > width) p.x = 0;
-                if (p.x < 0) p.x = width;
-                if (p.y > height) p.y = 0;
-                if (p.y < 0) p.y = height;
-            });
-    
-            // Actualizar las posiciones de las líneas
-            lines
-                .attr("x1", d => d.x)
-                .attr("y1", d => d.y)
-                .attr("x2", d => d.x + Math.cos(d.angle) * 10)
-                .attr("y2", d => d.y + Math.sin(d.angle) * 10)
-                .attr("stroke", d => {
-                    const distanceToText = Math.sqrt((d.x - 20) ** 2 + (d.y - 50) ** 2);
-                    return distanceToText < 100 ? primaryColor : secondaryColor;
-                });
+onMount(() => {
+  loadData();
+
+  const cellSize = 8;
+  const width = 1800;
+  const height = 200;
+  const cols = Math.floor(width / cellSize);
+  const rows = Math.floor(height / cellSize);
+
+  const colorDead = "#FFF"; // fondo blanco
+
+  // Inicializar el tablero con estado y color
+  let board = Array.from({ length: cols }, (_, x) =>
+    Array.from({ length: rows }, (_, y) => ({
+      state: Math.random() > 0.8 ? 1 : 0,
+      color: Math.random() > 0.5 ? "#6DE1D2" : "#FFD63A"
+    }))
+  );
+
+  const svg = d3.select("#header-sketch")
+    .append("svg")
+    .attr("width", "100%")
+    .attr("height", "100%")
+    .attr("viewBox", `0 0 ${width} ${height}`)
+    .attr("preserveAspectRatio", "xMidYMid meet");
+
+  // Dibujar celdas
+  const cells = svg.selectAll("rect")
+    .data(board.flat().map((d, i) => ({
+      x: (i % cols) * cellSize,
+      y: Math.floor(i / cols) * cellSize,
+      state: d.state,
+      color: d.color
+    })))
+    .enter()
+    .append("rect")
+    .attr("x", d => d.x)
+    .attr("y", d => d.y)
+    .attr("width", cellSize)
+    .attr("height", cellSize)
+    .attr("fill", d => d.state === 1 ? d.color : colorDead);
+
+  // Texto principal
+  const title = svg.append("text")
+    .attr("x", 40)
+    .attr("y", 120)
+    .attr("font-family", "Helvetica, sans-serif")
+    .attr("font-size", "6rem")
+    .attr("fill", "#000")
+    .attr("font-weight", "bold")
+    .text("Montajes");
+
+  // Subtítulo
+  const subtitle = svg.append("text")
+    .attr("x", 1300)
+    .attr("y", 160)
+    .attr("font-family", "Helvetica, sans-serif")
+    .attr("font-size", "1.4rem")
+    .attr("fill", "#000")
+    .text("Arte, ética y política (2025-1)");
+
+  // Reglas de Conway + asignación de color al revivir
+  function nextGeneration(board) {
+    const newBoard = board.map(col =>
+      col.map(cell => ({ ...cell }))
+    );
+
+    for (let x = 1; x < cols - 1; x++) {
+      for (let y = 1; y < rows - 1; y++) {
+        let neighbors = 0;
+        for (let i = -1; i <= 1; i++) {
+          for (let j = -1; j <= 1; j++) {
+            neighbors += board[x + i][y + j].state;
+          }
         }
-    
-        // Crear una animación continua
-        d3.timer(updateParticles);
-    
-        // Manejar el movimiento del ratón para interactuar con las partículas
-        svg.on("mousemove", function (event) {
-            const [mouseX, mouseY] = d3.pointer(event);
-            particles.forEach(p => {
-                const dx = mouseX - p.x;
-                const dy = mouseY - p.y;
-                const distance = Math.sqrt(dx * dx + dy * dy);
-                if (distance < 100) {
-                    p.angle = Math.atan2(dy, dx);
-                }
-            });
-        });
-    });
+        neighbors -= board[x][y].state;
+
+        if (board[x][y].state === 1 && (neighbors < 2 || neighbors > 3)) {
+          newBoard[x][y].state = 0;
+        } else if (board[x][y].state === 0 && neighbors === 3) {
+          newBoard[x][y].state = 1;
+          newBoard[x][y].color = Math.random() > 0.5 ? "#6DE1D2" : "#FFD63A";
+        }
+      }
+    }
+    return newBoard;
+  }
+
+  // Animación
+  d3.timer(() => {
+    board = nextGeneration(board);
+
+    cells.data(board.flat().map((d, i) => ({
+      x: (i % cols) * cellSize,
+      y: Math.floor(i / cols) * cellSize,
+      state: d.state,
+      color: d.color
+    })))
+      .attr("fill", d => d.state === 1 ? d.color : colorDead);
+  });
+
+  // Movimiento del texto con el mouse
+  svg.on("mousemove", function (event) {
+    const [mouseX, mouseY] = d3.pointer(event);
+    title.attr("transform", `translate(${mouseX * 0.02},${mouseY * 0.05})`);
+    subtitle.attr("transform", `translate(${mouseX * 0.01},${mouseY * 0.03})`);
+  });
+});
+
+
     </script>
     
     <div class="container">
         <header id="header-sketch" style="width: 100%; height: 200px; background: #fff;"></header>
+
     
         <div class="galeria">
             {#each data as item}
@@ -153,7 +164,7 @@
             font-size: 1em;
             color: var(--text-color);
             margin-bottom: 20px;
-            border-bottom: 2px solid var(--primary-color);
+          
             padding: 0;
         }
     
